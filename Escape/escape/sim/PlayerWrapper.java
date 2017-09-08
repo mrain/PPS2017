@@ -10,17 +10,19 @@ public class PlayerWrapper {
 	private Timer thread;
 	private Player player;
 	private int id, lastMove;
+	private String name;
 	private int[] playerIds, handleIds;
 	private long timeout, originalTimeout;
-	
-	public PlayerWrapper(Player player, int id, long timeout) {
+
+	public PlayerWrapper(Player player, int id, String name, long timeout) {
 		this.player = player;
 		this.id = id;
+		this.name = name;
 		this.timeout = timeout;
 		originalTimeout = timeout;
 		thread = new Timer();
 	}
-	
+
 	public int init(int n) throws Exception {
 		Log.record("Initializing player " + id);
 		// Initializing ID mapping array
@@ -42,6 +44,7 @@ public class PlayerWrapper {
 		playerIds[zero] = playerIds[id];
 		playerIds[id] = temp;
 		Collections.shuffle(Arrays.asList(handleIds));
+
 		// Calling player.init(n);
 		if (!thread.isAlive()) thread.start();
 		thread.call_start(new Callable<Integer>() {
@@ -53,13 +56,13 @@ public class PlayerWrapper {
 		int ret = thread.call_wait(timeout);
 		long elapsedTime = thread.getElapsedTime();
 		timeout -= elapsedTime;
-		Log.record("Player " + id + " initialized (" + elapsedTime + "ms)");
+		Log.record("Player " + id + "(" + name + ") initialized (" + elapsedTime + "ms)");
 		lastMove = handleIds[ret];
 		return lastMove;
 	}
-	
+
 	public int attempt(List<Integer> conflicts) throws Exception {
-		Log.record("Player " + id + " attempting");
+		Log.record("Player " + id + "(" + name + ") attempting");
 		List<Integer> c = new ArrayList<Integer>();
 		for (Integer p : conflicts) {
 			if (p != id)
@@ -76,13 +79,13 @@ public class PlayerWrapper {
 		int ret = thread.call_wait(timeout);
 		long elapsedTime = thread.getElapsedTime();
 		timeout -= elapsedTime;
-		Log.record("Player " + id + " attempts completed (" + elapsedTime + "ms)");
-		if (handleIds[ret] == lastMove) 
-			throw new IllegalArgumentException("Cannot attempt the same handle twice");
+		Log.record("Player " + id + "(" + name + ") attempts completed (" + elapsedTime + "ms)");
+		if (handleIds[ret] == lastMove)
+			throw new IllegalArgumentException("Player " + id + "(" + name + ") attempts the same handle twice");
 		lastMove = handleIds[ret];
 		return lastMove;
 	}
-	
+
 	public long getTotalElapsedTime() {
 		return originalTimeout - timeout;
 	}

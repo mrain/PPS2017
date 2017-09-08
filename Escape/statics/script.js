@@ -23,17 +23,41 @@ function process(data) {
 	var turn = Number(terms[1]);
 	var n = Number(terms[2]);
 	var handles = new Array(n);
+	var names = new Array(n);
+	var playerMove = new Array(n);
 	var i, j = 3, k, len;
+	var infoContent = "";
+
+	for (i = 0; i < n; ++ i) {
+		names[i] = terms[j];
+		++ j;
+	}
 	for (i = 0; i < n; ++ i) {
 		len = Number(terms[j]);
 		++ j;
 		handles[i] = new Array(len);
 		for (k = 0; k < len; ++ k) {
 			handles[i][k] = Number(terms[j]);
+			playerMove[Number(terms[j])] = i;
 			++ j;
 		}
 	}
 
+	for (i = 0; i < n; ++ i) {
+		infoContent += "<p><span class='circled'>p" + i + "</span> (" + names[i] + ") grabs handle <span class='rect'>H" + playerMove[i] + "</span></p>";
+	}
+	document.getElementById("info").innerHTML = infoContent;
+
+	var binContent = "";
+	for (i = 0; i < n; ++ i) {
+		binContent += "<p>Handle <span class='rect'>H" + i + "</span>:";
+		for (j = 0; j < handles[i].length; ++ j)
+			binContent += " <span class='circled'>p" + handles[i][j] + "</span>";
+		binContent += "</p>";
+	}
+	document.getElementById("bin").innerHTML = binContent;
+
+	/*
 	var canvas = document.getElementById("canvas");
 	var ctx = canvas.getContext("2d");
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -59,7 +83,7 @@ function process(data) {
 				drawPlayer(ctx, handles[l + i][j], xoffset + xgap * (i + 1), yoffset + ygap * (j + 1));
 		}
 		yoffset += ygap * (ny + 1);
-	}
+	}*/
 	return refresh;
 
 	/*

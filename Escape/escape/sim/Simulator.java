@@ -30,9 +30,8 @@ public class Simulator {
     public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException {
 //		args = new String[] {"-p", "random", "random", "random", "-v", "-g"};
         parseArgs(args);
-        // TODO
         n = playerNames.size();
-        players = new PlayerWrapper[n]; 
+        players = new PlayerWrapper[n];
         for (int i = 0; i < n; ++ i) {
         	Log.record("Loading player " + i + ": " + playerNames.get(i));
         	Player player = loadPlayer(playerNames.get(i));
@@ -40,11 +39,11 @@ public class Simulator {
         		Log.record("Cannot load player " + i + ": " + playerNames.get(i));
         		System.exit(1);
         	}
-        	players[i] = new PlayerWrapper(player, i, playerTimeout);
+        	players[i] = new PlayerWrapper(player, i, playerNames.get(i), playerTimeout);
         }
-        
+
         System.out.println("Starting game with " + n + " players");
-        
+
         boolean success = false;
         int[] move = new int[n];
         List<Integer>[] handles = new List[n];
@@ -64,7 +63,7 @@ public class Simulator {
 				}
 			}
         }
-        
+
         for (int i = 0; i < n; ++ i) {
         	try {
         		move[i] = players[i].init(n);
@@ -78,7 +77,7 @@ public class Simulator {
         	}
         	handles[i] = new ArrayList<Integer>();
         }
-        
+
         for (int turn = 1; turn < turnLimit; ++ turn) {
         	System.out.println("Round " + turn);
         	for (int i = 0; i < n; ++ i)
@@ -90,7 +89,17 @@ public class Simulator {
         		if (handles[move[i]].size() > 1)
         			success = false;
         	}
-        	if (gui) gui(server, state(n, handles, success ? -1 : fps, turn));
+
+			for (int i = 0; i < n; ++ i) {
+				if (handles[i].size() == 0) continue;
+				System.out.print("Attempting handle " + i + ":");
+				for (int k : handles[i])
+					System.out.print(" " + k);
+				System.out.println("");
+				//System.out.println(" grabbed handle " + i);
+			}
+
+        	if (gui) gui(server, state(n, playerNames, handles, success ? -1 : fps, turn));
         	if (success) {
         		System.out.println("Every player has a unique handle.");
         		System.out.println("Scores: " + turn);
@@ -109,7 +118,7 @@ public class Simulator {
             	}
         	}
         }
-        
+
         if (!success) {
         	System.out.println("You are doomed!");
         }
@@ -118,11 +127,13 @@ public class Simulator {
         }
         System.exit(0);
     }
-    
-    private static String state(int n, List<Integer>[] handles, double fps, int turn) {
+
+    private static String state(int n, List<String> playerNames, List<Integer>[] handles, double fps, int turn) {
     	// TODO
     	double refresh = 1000.0 / fps;
     	String ret = refresh + "," + turn + "," + n;
+      for (int i = 0; i < n; ++ i)
+        ret += "," + playerNames.get(i);
     	for (int i = 0; i < n; ++ i) {
     		ret += "," + handles[i].size();
     		for (Integer j : handles[i])
@@ -130,7 +141,7 @@ public class Simulator {
     	}
     	return ret;
     }
-    
+
     private static void gui(HTTPServer server, String content) {
     	if (server == null) return;
     	String path = null;
@@ -156,7 +167,7 @@ public class Simulator {
     			Log.record("Potentially malicious HTTP request \"" + path + "\"");
     			break;
     		}
-    		
+
     		File file = new File(statics_root + File.separator + path);
     		if (file == null) {
     			Log.record("Unknown HTTP request \"" + path + "\"");
@@ -234,7 +245,7 @@ public class Simulator {
         } while (!prev_dirs.isEmpty());
         return files;
     }
-    
+
     public static Player loadPlayer(String name) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         String sep = File.separator;
         Set<File> player_files = directory(root + sep + name, ".java");
