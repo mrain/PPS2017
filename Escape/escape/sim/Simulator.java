@@ -31,12 +31,13 @@ public class Simulator {
 //		args = new String[] {"-p", "random", "random", "random", "-v", "-g"};
         parseArgs(args);
         n = playerNames.size();
+        int[] lastMoves = new int[n];
         players = new PlayerWrapper[n];
         for (int i = 0; i < n; ++ i) {
-        	Log.record("Loading player " + i + ": " + playerNames.get(i));
+        	Log.record("Loading player " + (i + 1) + ": " + playerNames.get(i));
         	Player player = loadPlayer(playerNames.get(i));
         	if (player == null) {
-        		Log.record("Cannot load player " + i + ": " + playerNames.get(i));
+        		Log.record("Cannot load player " + (i + 1) + ": " + playerNames.get(i));
         		System.exit(1);
         	}
         	players[i] = new PlayerWrapper(player, i, playerNames.get(i), playerTimeout);
@@ -72,7 +73,7 @@ public class Simulator {
         		System.exit(1);
         	}
         	if (move[i] < 0 || move[i] >= n) {
-        		System.out.println("Player " + i + " makes an illegal move.");
+        		System.out.println("Player " + (i + 1) + " makes an illegal move.");
         		System.exit(1);
         	}
         	handles[i] = new ArrayList<Integer>();
@@ -84,20 +85,23 @@ public class Simulator {
         		handles[i].clear();
         	success = true;
         	for (int i = 0; i < n; ++ i) {
-        		System.out.println("Player " + i + " attempts to hold handle " + move[i]);
+        		System.out.println("Player " + (i + 1) + " attempts to hold handle " + (move[i] + 1));
         		handles[move[i]].add(i);
         		if (handles[move[i]].size() > 1)
         			success = false;
         	}
 
-			for (int i = 0; i < n; ++ i) {
-				if (handles[i].size() == 0) continue;
-				System.out.print("Attempting handle " + i + ":");
-				for (int k : handles[i])
-					System.out.print(" " + k);
-				System.out.println("");
-				//System.out.println(" grabbed handle " + i);
-			}
+    			for (int i = 0; i < n; ++ i) {
+    				if (handles[i].size() == 0) continue;
+            if (handles[i].size() == 1) {
+              players[handles[i].get(0)].release();
+            }
+    				System.out.print("Attempting handle " + (i + 1) + ":");
+    				for (int k : handles[i])
+    					System.out.print(" " + (k + 1));
+    				System.out.println("");
+    				//System.out.println(" grabbed handle " + i);
+    			}
 
         	if (gui) gui(server, state(n, playerNames, handles, success ? -1 : fps, turn));
         	if (success) {
@@ -107,15 +111,15 @@ public class Simulator {
         	}
         	for (int i = 0; i < n; ++ i) {
         		try {
-					move[i] = players[i].attempt(handles[move[i]]);
-				} catch (Exception e) {
-					e.printStackTrace();
-					System.exit(1);
-				}
-            	if (move[i] < 0 || move[i] >= n) {
-            		System.out.println("Player " + i + " makes an illegal move.");
-            		System.exit(1);
-            	}
+    					move[i] = players[i].attempt(handles[move[i]]);
+    				} catch (Exception e) {
+    					e.printStackTrace();
+    					System.exit(1);
+    				}
+          	if (move[i] < 0 || move[i] >= n) {
+          		System.out.println("Player " + (i + 1) + "(" + players[i].getName() + ") makes an illegal move.");
+          		System.exit(1);
+          	}
         	}
         }
 
@@ -123,7 +127,7 @@ public class Simulator {
         	System.out.println("You are doomed!");
         }
         for (int i = 0; i < n; ++ i) {
-        	Log.record("Total running time for player " + i + " is " + players[i].getTotalElapsedTime() + "ms");
+        	Log.record("Total running time for player " + (i + 1) + " is " + players[i].getTotalElapsedTime() + "ms");
         }
         System.exit(0);
     }

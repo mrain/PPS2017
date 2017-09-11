@@ -50,7 +50,7 @@ public class PlayerWrapper {
 		thread.call_start(new Callable<Integer>() {
 			@Override
 			public Integer call() throws Exception {
-				return player.init(n);
+				return player.init(n) - 1;
 			}
 		});
 		int ret = thread.call_wait(timeout);
@@ -66,14 +66,14 @@ public class PlayerWrapper {
 		List<Integer> c = new ArrayList<Integer>();
 		for (Integer p : conflicts) {
 			if (p != id)
-				c.add(playerIds[p]);
+				c.add(playerIds[p] + 1);
 		}
 		// Calling player.attempt(c)
 		if (!thread.isAlive()) thread.start();
 		thread.call_start(new Callable<Integer>() {
 			@Override
 			public Integer call() throws Exception {
-				return player.attempt(c);
+				return player.attempt(c) - 1;
 			}
 		});
 		int ret = thread.call_wait(timeout);
@@ -86,7 +86,15 @@ public class PlayerWrapper {
 		return lastMove;
 	}
 
+	public void release() {
+		lastMove = -1;
+	}
+
 	public long getTotalElapsedTime() {
 		return originalTimeout - timeout;
+	}
+
+	public String getName() {
+		return name;
 	}
 }

@@ -7,16 +7,16 @@ public class Player implements escape.sim.Player {
 	private Random rand;
 	private int n = 0;
 	private int lastMove = 0;
-	
+
 	public Player() {
 		rand = new Random();
 	}
-	
+
 	@Override
 	public int init(int n) {
 		this.n = n;
 		lastMove = rand.nextInt(n);
-		return lastMove;
+		return lastMove + 1;
 	}
 
 	@Override
@@ -25,7 +25,7 @@ public class Player implements escape.sim.Player {
 		while (move == lastMove)
 			move = rand.nextInt(n);
 		lastMove = move;
-		return lastMove;
+		return lastMove + 1;
 	}
 
 }

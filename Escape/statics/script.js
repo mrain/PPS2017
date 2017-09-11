@@ -1,21 +1,21 @@
-var radius = 18;
-var xgap = 120;
-var ygap = 50;
+// var radius = 18;
+// var xgap = 120;
+// var ygap = 50;
 
-function drawPlayer(ctx, id, x, y) {
-	// drawing circle
-	ctx.beginPath();
-	ctx.arc(x, y, radius, 0, 2*Math.PI);
-	ctx.stroke();
-	// console.log(id + " " + String(id).length);
-	// displaying id
-	if (String(id).length == 1)
-		ctx.fillText(id, x - 5, y + 7);
-	else if (String(id).length == 2)
-		ctx.fillText(id, x - 10, y + 7);
-	else
-		ctx.fillText(id, x - 15, y + 7);
-}
+// function drawPlayer(ctx, id, x, y) {
+// 	// drawing circle
+// 	ctx.beginPath();
+// 	ctx.arc(x, y, radius, 0, 2*Math.PI);
+// 	ctx.stroke();
+// 	// console.log(id + " " + String(id).length);
+// 	// displaying id
+// 	if (String(id).length == 1)
+// 		ctx.fillText(id, x - 5, y + 7);
+// 	else if (String(id).length == 2)
+// 		ctx.fillText(id, x - 10, y + 7);
+// 	else
+// 		ctx.fillText(id, x - 15, y + 7);
+// }
 
 function process(data) {
 	var terms = data.split(",");
@@ -44,15 +44,15 @@ function process(data) {
 	}
 
 	for (i = 0; i < n; ++ i) {
-		infoContent += "<p><span class='circled'>p" + i + "</span> (" + names[i] + ") grabs handle <span class='rect'>H" + playerMove[i] + "</span></p>";
+		infoContent += "<p><span class='circled'>p" + (i + 1) + "</span> (" + names[i] + ") grabs handle <span class='rect'>H" + (playerMove[i] + 1) + "</span></p>";
 	}
 	document.getElementById("info").innerHTML = infoContent;
 
 	var binContent = "";
 	for (i = 0; i < n; ++ i) {
-		binContent += "<p>Handle <span class='rect'>H" + i + "</span>:";
+		binContent += "<p>Handle <span class='rect'>H" + (i + 1) + "</span>:";
 		for (j = 0; j < handles[i].length; ++ j)
-			binContent += " <span class='circled'>p" + handles[i][j] + "</span>";
+			binContent += " <span class='circled'>p" + (handles[i][j] + 1) + "</span>";
 		binContent += "</p>";
 	}
 	document.getElementById("bin").innerHTML = binContent;
