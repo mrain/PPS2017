@@ -56,6 +56,7 @@ function process(data) {
 		binContent += "</p>";
 	}
 	document.getElementById("bin").innerHTML = binContent;
+	document.getElementById("turn").innerHTML = "Turn: " + turn;
 
 	/*
 	var canvas = document.getElementById("canvas");
