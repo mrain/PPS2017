@@ -23,7 +23,7 @@ public class Simulator {
     private static final String root = "exchange";
     private static final String statics_root = "statics";
 
-    private static long playerTimeout = 5000;
+    private static long playerTimeout = 10000;
     private static boolean gui = false;
     private static double fps = 5;
     private static int n = 20;
@@ -33,7 +33,7 @@ public class Simulator {
     private static PlayerWrapper[] players;
 
     public static void main(String[] args) throws Exception {
-//		args = new String[] {"-p", "g0", "g0", "g0", "", "-g"};
+//		args = new String[] {"-p", "g0", "g0", "g0", "g0", "-g"};
         parseArgs(args);
         players = new PlayerWrapper[p];
         for (int i = 0; i < p; ++i) {
@@ -43,7 +43,7 @@ public class Simulator {
                 Log.record("Cannot load player " + i + ": " + playerNames.get(i));
                 System.exit(1);
             }
-            players[i] = new PlayerWrapper(player, i, playerTimeout);
+            players[i] = new PlayerWrapper(player, i, n, playerTimeout);
         }
 
         System.out.println("Starting game with " + p + " players");
@@ -66,6 +66,8 @@ public class Simulator {
         }
 
         // Simulation starts!
+        for (int i = 0; i < p; ++ i)
+            players[i].init(n, p, t);
         List<Transaction> lastTransactions = new ArrayList<Transaction>();
         Offer[] offers = new Offer[p];
         Request[] requests = new Request[p];
@@ -74,6 +76,10 @@ public class Simulator {
             // Gather offers
             for (int i = 0; i < p; ++i) {
                 offers[i] = players[i].makeOffer(Arrays.asList(requests), lastTransactions);
+                if (offers[i].getFirst() != null && !players[i].owned(offers[i].getFirst()))
+                    throw new Exception(playerNames.get(i) + "(" + i + ") making invalid offer " + offers[i]);
+                if (offers[i].getSecond() != null && !players[i].owned(offers[i].getSecond()))
+                    throw new Exception(playerNames.get(i) + "(" + i + ") making invalid offer " + offers[i]);
                 System.out.println(playerNames.get(i) + "(" + i + ") making offer " + offers[i]);
             }
             if (gui) {
@@ -85,8 +91,8 @@ public class Simulator {
                 for (Offer offer : offers)
                     toSend.add(new Offer(offer));
                 requests[i] = players[i].requestExchange(toSend);
-                if (!validateRequest(offers, requests[i]))
-                    throw new Exception(playerNames.get(i) + " making invalid requests " + requests[i]);
+                if (!validateRequest(offers, i, requests[i]))
+                    throw new Exception(playerNames.get(i) + "(" + i + ") making invalid requests " + requests[i]);
                 System.out.println(playerNames.get(i) + "(" + i + ") requesting " + requests[i]);
             }
 
@@ -104,6 +110,11 @@ public class Simulator {
 
             System.out.println("Completed transactions: ");
             for (Transaction transaction : lastTransactions) {
+                players[transaction.getFirstID()].removeSock(transaction.getFirstSock());
+                players[transaction.getSecondID()].removeSock(transaction.getSecondSock());
+                players[transaction.getFirstID()].addSock(transaction.getSecondSock());
+                players[transaction.getSecondID()].addSock(transaction.getFirstSock());
+
                 players[transaction.getFirstID()].completeTransaction(transaction);
                 players[transaction.getSecondID()].completeTransaction(transaction);
                 System.out.println(transaction);
@@ -121,32 +132,34 @@ public class Simulator {
         System.exit(0);
     }
 
-    private static boolean validateRequest(Offer[] offers, Request request) {
+    private static boolean validateRequest(Offer[] offers, int id, Request request) {
         if (request == null)
             return false;
-        if (request.getFirstOrderID() < -1 || request.getFirstOrderID() >= p)
+        if (request.getFirstID() < -1 || request.getFirstID() >= p)
             return false;
-        if (request.getSecondOrderID() < -1 || request.getSecondOrderID() >= p)
+        if (request.getSecondID() < -1 || request.getSecondID() >= p)
             return false;
-        if (request.getFirstOrderID() > -1) {
-            if (request.getFirstOrderRank() < 1 || request.getFirstOrderRank() > 2)
+        if (request.getFirstID() == id || request.getSecondID() == id)
+            return false;
+        if (request.getFirstID() > -1) {
+            if (request.getFirstRank() < 1 || request.getFirstRank() > 2)
                 return false;
-            else if (request.getFirstOrderRank() == 1) {
-                if (offers[request.getFirstOrderID()].getFirst() == null)
+            else if (request.getFirstRank() == 1) {
+                if (offers[request.getFirstID()].getFirst() == null)
                     return false;
-            } else if (request.getFirstOrderRank() == 2) {
-                if (offers[request.getFirstOrderID()].getSecond() == null)
+            } else if (request.getFirstRank() == 2) {
+                if (offers[request.getFirstID()].getSecond() == null)
                     return false;
             }
         }
-        if (request.getSecondOrderID() > -1) {
-            if (request.getSecondOrderRank() < 1 || request.getSecondOrderRank() > 2)
+        if (request.getSecondID() > -1) {
+            if (request.getSecondRank() < 1 || request.getSecondRank() > 2)
                 return false;
-            else if (request.getSecondOrderRank() == 1) {
-                if (offers[request.getSecondOrderID()].getFirst() == null)
+            else if (request.getSecondRank() == 1) {
+                if (offers[request.getSecondID()].getFirst() == null)
                     return false;
-            } else if (request.getSecondOrderRank() == 2) {
-                if (offers[request.getSecondOrderID()].getSecond() == null)
+            } else if (request.getSecondRank() == 2) {
+                if (offers[request.getSecondID()].getSecond() == null)
                     return false;
             }
         }
@@ -173,7 +186,7 @@ public class Simulator {
                 ret += ",-1,-1,-1,-1";
             else {
                 Request r = requests[i];
-                ret += "," + r.getFirstOrderID() + "," + r.getFirstOrderRank() + "," + r.getSecondOrderID() + "," + r.getSecondOrderRank();
+                ret += "," + r.getFirstID() + "," + r.getFirstRank() + "," + r.getSecondID() + "," + r.getSecondRank();
             }
         }
         if (transactions != null)
@@ -226,10 +239,17 @@ public class Simulator {
         for (; i < args.length; ++i) {
             switch (args[i].charAt(0)) {
                 case '-':
-                    if (args[i].equals("-p") || args[i].equals("--players")) {
+                    if (args[i].startsWith("-p") || args[i].equals("--players")) {
+                        int rep = 1;
+                        try {
+                            rep = Integer.parseInt(args[i].substring(2));
+                        } catch (Exception e) {
+                            rep = 1;
+                        }
                         while (i + 1 < args.length && args[i + 1].charAt(0) != '-') {
                             ++i;
-                            playerNames.add(args[i]);
+                            for (int k = 0; k < rep; ++ k)
+                                playerNames.add(args[i]);
                         }
                     } else if (args[i].equals("-t") || args[i].equals("--turns")) {
                         if (++i == args.length) {
@@ -324,10 +344,10 @@ public class Simulator {
             throw new IOException("Cannot find Java class loader");
         @SuppressWarnings("rawtypes")
         Class<?> raw_class = loader.loadClass(root + "." + name + ".Player");
-        Player player = null;
-        Constructor<?> constructor = raw_class.getConstructor(Integer.TYPE, Integer.TYPE, Integer.TYPE);
-        player = (Player) constructor.newInstance(id, n, p);
-        return player;
+//        Player player = null;
+//        Constructor<?> constructor = raw_class.getConstructor(Integer.TYPE, Integer.TYPE, Integer.TYPE, Integer.TYPE);
+//        player = (Player) constructor.newInstance(id, n, p, t);
+        return (Player)raw_class.newInstance();
     }
 
     private static long last_modified(Iterable<File> files) {

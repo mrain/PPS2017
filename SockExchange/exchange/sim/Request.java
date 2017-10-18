@@ -1,34 +1,34 @@
 package exchange.sim;
 
 public class Request {
-    private int firstOrderID, firstOrderRank;
-    private int secondOrderID, secondOrderRank;
+    private int firstID, firstRank;
+    private int secondID, secondRank;
 
-    public Request(int firstOrderID, int firstOrderRank, int secondOrderID, int secondOrderRank) {
-        this.firstOrderID = firstOrderID;
-        this.firstOrderRank = firstOrderRank;
-        this.secondOrderID = secondOrderID;
-        this.secondOrderRank = secondOrderRank;
+    public Request(int firstID, int firstRank, int secondID, int secondRank) {
+        this.firstID = firstID;
+        this.firstRank = firstRank;
+        this.secondID = secondID;
+        this.secondRank = secondRank;
     }
 
-    public int getFirstOrderID() {
-        return firstOrderID;
+    public int getFirstID() {
+        return firstID;
     }
 
-    public int getFirstOrderRank() {
-        return firstOrderRank;
+    public int getFirstRank() {
+        return firstRank;
     }
 
-    public int getSecondOrderID() {
-        return secondOrderID;
+    public int getSecondID() {
+        return secondID;
     }
 
-    public int getSecondOrderRank() {
-        return secondOrderRank;
+    public int getSecondRank() {
+        return secondRank;
     }
 
     @Override
     public String toString() {
-        return "(" + firstOrderID + ", " + firstOrderRank + "), (" + secondOrderID + ", " + secondOrderRank + ")";
+        return "(" + firstID + ", " + firstRank + "), (" + secondID + ", " + secondRank + ")";
     }
 }

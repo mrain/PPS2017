@@ -13,19 +13,19 @@ public class ExchangeCenter {
         boolean[][] mark = new boolean[requests.length][];
         for (int i = 0; i < requests.length; ++i) {
             mark[i] = new boolean[3];
-            int id1 = requests[i].getFirstOrderID(), id2 = requests[i].getSecondOrderID();
-            int rank1 = requests[i].getFirstOrderRank(), rank2 = requests[i].getSecondOrderRank();
+            int id1 = requests[i].getFirstID(), id2 = requests[i].getSecondID();
+            int rank1 = requests[i].getFirstRank(), rank2 = requests[i].getSecondRank();
             if (id1 != -1) {
-                if (requests[id1].getFirstOrderID() == i)
-                    events.add(new Event(id1, rank1, i, requests[id1].getFirstOrderRank()));
-                if (requests[id1].getSecondOrderID() == i)
-                    events.add(new Event(id1, rank1, i, requests[id1].getSecondOrderRank()));
+                if (requests[id1].getFirstID() == i)
+                    events.add(new Event(id1, rank1, i, requests[id1].getFirstRank()));
+                if (requests[id1].getSecondID() == i)
+                    events.add(new Event(id1, rank1, i, requests[id1].getSecondRank()));
             }
             if (id2 != -1) {
-                if (requests[id2].getFirstOrderID() == i)
-                    events.add(new Event(id2, rank2, i, requests[id2].getFirstOrderRank()));
-                if (requests[id2].getSecondOrderID() == i)
-                    events.add(new Event(id2, rank2, i, requests[id2].getSecondOrderRank()));
+                if (requests[id2].getFirstID() == i)
+                    events.add(new Event(id2, rank2, i, requests[id2].getFirstRank()));
+                if (requests[id2].getSecondID() == i)
+                    events.add(new Event(id2, rank2, i, requests[id2].getSecondRank()));
             }
         }
         events.sort((e1, e2) -> {

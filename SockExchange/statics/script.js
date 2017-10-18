@@ -1,4 +1,5 @@
 var r = 20;
+var paused = 0;
 
 function drawCircle(ctx, x, y, color) {
 	ctx.beginPath();
@@ -25,18 +26,6 @@ function drawSock(ctx, x, y, color) {
 	ctx.fill();
 	ctx.stroke();
 	ctx.fillStyle='black';
-// ctx.beginPath();
-// ctx.moveTo(15, 15);
-// ctx.lineTo(30, 15);
-// ctx.quadraticCurveTo(30,30, 50, 30);
-// ctx.quadraticCurveTo(60, 35, 50, 40);
-// ctx.lineTo(30,40);
-// ctx.quadraticCurveTo(15, 37, 20, 30);
-// ctx.lineTo(15,15);
-// ctx.closePath();
-// ctx.fillStyle='red';
-// ctx.fill();
-// ctx.stroke();
 
 }
 
@@ -145,11 +134,15 @@ function process(data) {
 			drawSock(ctx, r4 + 20, (ctop + cmid) * 0.5 + 5, offers[requests[i][0].id][requests[i][0].rank]);
 			var ry = requests[i][0].id * cgap + c1 + cgap * 0.25 + 5 * (1 - 2 * requests[i][0].rank) + requests[i][0].rank * cgap * 0.5;
 			drawArrow(ctx, r3 + 2, ry, r4 - 2, (ctop + cmid) * 0.5 + 5);
+
+			ctx.fillText("from " + names[requests[i][0].id], r4 + 70, (ctop + cmid) * 0.5 + 5);
 		}
 		if (requests[i][1].id >= 0) {
 			drawSock(ctx, r4 + 20, (cbot + cmid) * 0.5 - 5, offers[requests[i][1].id][requests[i][1].rank]);
 			var ry = requests[i][1].id * cgap + c1 + cgap * 0.25 + 5 * (1 - 2 * requests[i][1].rank) + requests[i][1].rank * cgap * 0.5;
 			drawArrow(ctx, r3 + 2, ry, r4 - 2, (cbot + cmid) * 0.5 - 5);
+
+			ctx.fillText("from " + names[requests[i][1].id], r4 + 70, (cbot + cmid) * 0.5 - 5);
 		}
 	}
 
@@ -159,8 +152,8 @@ function process(data) {
 		id1 = transactions[i][0].id, rank1 = transactions[i][0].rank;
 		id2 = transactions[i][1].id, rank2 = transactions[i][1].rank;
 		// redraw offer
-		drawCircle(ctx, (r2 + r3) * 0.5, id1 * cgap + c1 + cgap * 0.25 + 5 * (1 - 2 * rank1) + rank1 * cgap * 0.5, offers[id2][rank2]);
-		drawCircle(ctx, (r2 + r3) * 0.5, id2 * cgap + c1 + cgap * 0.25 + 5 * (1 - 2 * rank2) + rank2 * cgap * 0.5, offers[id1][rank1]);
+		drawSock(ctx, (r2 + r3) * 0.5, id1 * cgap + c1 + cgap * 0.25 + 5 * (1 - 2 * rank1) + rank1 * cgap * 0.5, offers[id2][rank2]);
+		drawSock(ctx, (r2 + r3) * 0.5, id2 * cgap + c1 + cgap * 0.25 + 5 * (1 - 2 * rank2) + rank2 * cgap * 0.5, offers[id1][rank1]);
 		
 		// Draw id1 line
 		tox = r3 + 2; fromx = r4 - 2;
@@ -199,7 +192,7 @@ function ajax(version, retries, timeout) {
 				//console.log(xhttp.responseText);
 				refresh = process(xhttp.responseText);
 				//console.log(refresh);
-				if (latest_version < version)
+				if (latest_version < version && paused == 0)
 					latest_version = version;
 				else refresh = -1;
 			} catch (message) {
@@ -224,6 +217,10 @@ function ajax(version, retries, timeout) {
 	xhttp.responseType = "text";
 	xhttp.timeout = timeout;
 	xhttp.send();
+}
+
+function pause() {
+	paused = 1 - paused;
 }
 
 ajax(1, 10, 100)

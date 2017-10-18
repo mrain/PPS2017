@@ -15,7 +15,14 @@ public class Sock {
         this.B = sock.B;
     }
 
-    public boolean equals(Sock s) {
+    @Override
+    public int hashCode() {
+        return R * 256 * 256 + G * 256 + B;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        Sock s = (Sock) obj;
         return R == s.R && G == s.G && B == s.B;
     }
 

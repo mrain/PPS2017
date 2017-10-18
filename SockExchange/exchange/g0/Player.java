@@ -1,6 +1,7 @@
 package exchange.g0;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import exchange.sim.Offer;
@@ -11,18 +12,18 @@ import exchange.sim.Transaction;
 public class Player extends exchange.sim.Player {
     /*
         Inherited from exchange.sim.Player:
-        int id          -       Your ID, range from 0 to n-1
-        Sock[] socks    -       Your list of socks (length 2p), you need to maintain it by yourselves
         Random random   -       Random number generator, if you need it
 
-        double getTotalEmbarrassment(); functions that help you calculate your total embarrassment, pair up socks 0-1, 2-3, 4-5 ... etc
-
         Remark: you have to manually adjust the order of socks, to minimize the total embarrassment
+                the score is calculated based on your returned list of getSocks(). Simulator will pair up socks 0-1, 2-3, 4-5, etc.
      */
-    private int id1, id2;
+    private int id1, id2, id;
+    private Sock[] socks;
 
-    public Player(int id, int n, int p) {
-        super(id, n, p);
+    @Override
+    public void init(int id, int n, int p, int t, List<Sock> socks) {
+        this.id = id;
+        this.socks = (Sock[]) socks.toArray(new Sock[2 * n]);
     }
 
     @Override
@@ -65,6 +66,7 @@ public class Player extends exchange.sim.Player {
 		List<Integer> availableOffers = new ArrayList<>();
 		for (int i = 0; i < offers.size(); ++ i) {
 		    if (i == id) continue;
+
 		    // Encoding the offer information into integer: id * 2 + rank - 1
             if (offers.get(i).getFirst() != null)
                 availableOffers.add(i * 2);
@@ -112,5 +114,10 @@ public class Player extends exchange.sim.Player {
         }
         if (rank == 1) socks[id1] = newSock;
         else socks[id2] = newSock;
+    }
+
+    @Override
+    public List<Sock> getSocks() {
+        return Arrays.asList(socks);
     }
 }
