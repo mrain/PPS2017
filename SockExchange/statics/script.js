@@ -1,12 +1,43 @@
-var radius = 20;
+var r = 20;
 
 function drawCircle(ctx, x, y, color) {
 	ctx.beginPath();
-	ctx.arc(x, y, radius, 0, 2 * Math.PI);
+	ctx.arc(x, y, r, 0, 2 * Math.PI);
 	ctx.fillStyle = '#' + color;
 	ctx.fill();
 	ctx.stroke();
 	ctx.fillStyle = 'black';
+}
+
+function drawSock(ctx, x, y, color) {
+	ctx.beginPath();
+
+	ctx.beginPath();
+	ctx.moveTo(x - 15, y - 15);
+	ctx.lineTo(x, y - 15);
+	ctx.quadraticCurveTo(x, y, x + 20, y);
+	ctx.quadraticCurveTo(x + 30, y + 5, x + 20, y + 10);
+	ctx.lineTo(x, y + 10);
+	ctx.quadraticCurveTo(x - 15, y + 7, x - 10, y);
+	// ctx.lineTo(x - 5, y - 5);
+	ctx.closePath();
+	ctx.fillStyle='#' + color;
+	ctx.fill();
+	ctx.stroke();
+	ctx.fillStyle='black';
+// ctx.beginPath();
+// ctx.moveTo(15, 15);
+// ctx.lineTo(30, 15);
+// ctx.quadraticCurveTo(30,30, 50, 30);
+// ctx.quadraticCurveTo(60, 35, 50, 40);
+// ctx.lineTo(30,40);
+// ctx.quadraticCurveTo(15, 37, 20, 30);
+// ctx.lineTo(15,15);
+// ctx.closePath();
+// ctx.fillStyle='red';
+// ctx.fill();
+// ctx.stroke();
+
 }
 
 function drawArrow(ctx, fromx, fromy, tox, toy) {
@@ -104,19 +135,19 @@ function process(data) {
 		ctx.fillText(names[i], r1 + 10, cmid);
 		// draw offers
 		if (offers[i][0] != 'no')
-			drawCircle(ctx, (r2 + r3) * 0.5, (ctop + cmid) * 0.5 + 5, offers[i][0]);
+			drawSock(ctx, (r2 + r3) * 0.5, (ctop + cmid) * 0.5 + 5, offers[i][0]);
 		if (offers[i][1] != 'no')
-			drawCircle(ctx, (r2 + r3) * 0.5, (cbot + cmid) * 0.5 - 5, offers[i][1]);
+			drawSock(ctx, (r2 + r3) * 0.5, (cbot + cmid) * 0.5 - 5, offers[i][1]);
 
 		// draw requests
 		// console.log(requests[i]);
 		if (requests[i][0].id >= 0) {
-			drawCircle(ctx, r4 + 20, (ctop + cmid) * 0.5 + 5, offers[requests[i][0].id][requests[i][0].rank]);
+			drawSock(ctx, r4 + 20, (ctop + cmid) * 0.5 + 5, offers[requests[i][0].id][requests[i][0].rank]);
 			var ry = requests[i][0].id * cgap + c1 + cgap * 0.25 + 5 * (1 - 2 * requests[i][0].rank) + requests[i][0].rank * cgap * 0.5;
 			drawArrow(ctx, r3 + 2, ry, r4 - 2, (ctop + cmid) * 0.5 + 5);
 		}
 		if (requests[i][1].id >= 0) {
-			drawCircle(ctx, r4 + 20, (cbot + cmid) * 0.5 - 5, offers[requests[i][1].id][requests[i][1].rank]);
+			drawSock(ctx, r4 + 20, (cbot + cmid) * 0.5 - 5, offers[requests[i][1].id][requests[i][1].rank]);
 			var ry = requests[i][1].id * cgap + c1 + cgap * 0.25 + 5 * (1 - 2 * requests[i][1].rank) + requests[i][1].rank * cgap * 0.5;
 			drawArrow(ctx, r3 + 2, ry, r4 - 2, (cbot + cmid) * 0.5 - 5);
 		}
