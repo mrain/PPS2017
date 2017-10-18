@@ -27,4 +27,8 @@ public class Sock {
     public String toString() {
         return "Sock(" + R + ", " + G + ", " + B + ")";
     }
+
+    public String toRGB() {
+        return String.format("%02X%02X%02X", R, G, B);
+    }
 }

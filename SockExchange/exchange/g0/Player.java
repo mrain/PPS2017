@@ -1,5 +1,6 @@
 package exchange.g0;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import exchange.sim.Offer;
@@ -9,12 +10,14 @@ import exchange.sim.Transaction;
 
 public class Player extends exchange.sim.Player {
     /*
-        Inherited from exchanage.sim.Player:
+        Inherited from exchange.sim.Player:
         int id          -       Your ID, range from 0 to n-1
         Sock[] socks    -       Your list of socks (length 2p), you need to maintain it by yourselves
         Random random   -       Random number generator, if you need it
 
         double getTotalEmbarrassment(); functions that help you calculate your total embarrassment, pair up socks 0-1, 2-3, 4-5 ... etc
+
+        Remark: you have to manually adjust the order of socks, to minimize the total embarrassment
      */
     private int id1, id2;
 
@@ -55,23 +58,34 @@ public class Player extends exchange.sim.Player {
 			offer.getSock(rank = 1, 2)		-		get rank's offer
 			offer.getFirst()				-		equivalent to offer.getSock(1)
 			offer.getSecond()				-		equivalent to offer.getSock(2)
+
+			Remark: For Request object, rank ranges between 1 and 2
 		 */
-        int test = random.nextInt(2);
-        if (test == 0) {
+
+		List<Integer> availableOffers = new ArrayList<>();
+		for (int i = 0; i < offers.size(); ++ i) {
+		    if (i == id) continue;
+		    // Encoding the offer information into integer: id * 2 + rank - 1
+            if (offers.get(i).getFirst() != null)
+                availableOffers.add(i * 2);
+            if (offers.get(i).getSecond() != null)
+                availableOffers.add(i * 2 + 1);
+        }
+
+        int test = random.nextInt(3);
+        if (test == 0 || availableOffers.size() == 0) {
             // In Request object, id == -1 means no request.
             return new Request(-1, -1, -1, -1);
-        } else {
+        } else if (test == 1 || availableOffers.size() == 1) {
             // Making random requests
-            int k = random.nextInt(offers.size()), retry = 100;
-            while (offers.get(k).getSock(1) == null && offers.get(k).getSock(2) == null && retry > 0) {
-                retry -= 1;
-                k = random.nextInt(offers.size());
-            }
-            if (offers.get(k).getSock(1) != null)
-                return new Request(k, 1, -1, -1);
-            else if (offers.get(k).getSock(2) != null)
-                return new Request(k, 2, -1, -1);
-            else return new Request(-1, -1, -1, -1);
+            int k = availableOffers.get(random.nextInt(availableOffers.size()));
+            return new Request(k / 2, k % 2 + 1, -1, -1);
+        } else {
+            int k1 = availableOffers.get(random.nextInt(availableOffers.size()));
+            int k2 = availableOffers.get(random.nextInt(availableOffers.size()));
+            while (k1 == k2)
+                k2 = availableOffers.get(random.nextInt(availableOffers.size()));
+            return new Request(k1 / 2, k1 % 2 + 1, k2 / 2, k2 % 2 + 1);
         }
     }
 
@@ -84,6 +98,8 @@ public class Player extends exchange.sim.Player {
             transaction.getSecondRank()     -       Similar as above
             transaction.getFirstSock()      -       Sock offered by the first player
             transaction.getSecondSock()     -       Similar as above
+
+            Remark: rank ranges between 1 and 2
          */
         int rank;
         Sock newSock;

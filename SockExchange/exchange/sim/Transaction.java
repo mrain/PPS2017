@@ -37,4 +37,9 @@ public class Transaction {
     public Sock getSecondSock() {
         return new Sock(secondSock);
     }
+
+    @Override
+    public String toString() {
+        return "Transaction[" + firstID + "(" + firstRank + "): " + firstSock + ", " + secondID + "(" + secondRank + "): " + secondSock + "]";
+    }
 }

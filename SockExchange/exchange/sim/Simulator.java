@@ -8,6 +8,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -25,13 +26,13 @@ public class Simulator {
     private static long playerTimeout = 5000;
     private static boolean gui = false;
     private static double fps = 5;
-    private static int n = 0;
+    private static int n = 20;
     private static int p = 0;
-    private static int t = 0;
+    private static int t = 1000;
     private static List<String> playerNames = new ArrayList<String>();
     private static PlayerWrapper[] players;
 
-    public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException {
+    public static void main(String[] args) throws Exception {
 //		args = new String[] {"-p", "g0", "g0", "g0", "", "-g"};
         parseArgs(args);
         players = new PlayerWrapper[p];
@@ -69,41 +70,49 @@ public class Simulator {
         Offer[] offers = new Offer[p];
         Request[] requests = new Request[p];
         for (int turn = 1; turn <= t; ++turn) {
+            System.out.println("Round " + turn + ":");
             // Gather offers
             for (int i = 0; i < p; ++i) {
-                try {
-                    offers[i] = players[i].makeOffer(Arrays.asList(requests), lastTransactions);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                offers[i] = players[i].makeOffer(Arrays.asList(requests), lastTransactions);
+                System.out.println(playerNames.get(i) + "(" + i + ") making offer " + offers[i]);
+            }
+            if (gui) {
+                gui(server, state(fps, turn, offers, null, null));
             }
             // Getting requests
             for (int i = 0; i < p; ++i) {
                 List<Offer> toSend = new ArrayList<>();
                 for (Offer offer : offers)
                     toSend.add(new Offer(offer));
-                try {
-                    requests[i] = players[i].requestExchange(toSend);
-                    if (!validateRequest(offers, requests[i]))
-                        throw new Exception(playerNames.get(i) + " making invalid requests");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                requests[i] = players[i].requestExchange(toSend);
+                if (!validateRequest(offers, requests[i]))
+                    throw new Exception(playerNames.get(i) + " making invalid requests " + requests[i]);
+                System.out.println(playerNames.get(i) + "(" + i + ") requesting " + requests[i]);
+            }
+
+
+            if (gui) {
+                gui(server, state(fps, turn, offers, requests, null));
             }
 
             lastTransactions = ExchangeCenter.exchange(offers, requests);
-            for (Transaction transaction : lastTransactions) {
-                try {
-                    players[transaction.getFirstID()].completeTransaction(transaction);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                try {
-                    players[transaction.getSecondID()].completeTransaction(transaction);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+
+            if (gui) {
+                if (turn == t) fps = -1000.0;
+                gui(server, state(fps, turn, offers, requests, lastTransactions));
             }
+
+            System.out.println("Completed transactions: ");
+            for (Transaction transaction : lastTransactions) {
+                players[transaction.getFirstID()].completeTransaction(transaction);
+                players[transaction.getSecondID()].completeTransaction(transaction);
+                System.out.println(transaction);
+            }
+            System.out.println("");
+        }
+
+        for (int i = 0; i < p; ++ i) {
+            System.out.println(playerNames.get(i) + " gets total embarrassment " + players[i].getTotalEmbarrassment());
         }
 
         for (int i = 0; i < p; ++i) {
@@ -141,20 +150,35 @@ public class Simulator {
                     return false;
             }
         }
-        return false;
+        return true;
     }
 
-    private static String state(int n, List<String> playerNames, List<Integer>[] handles, double fps, int turn) {
+    private static String state(double fps, int turn, Offer[] offers, Request[] requests, List<Transaction> transactions) {
         // TODO
+        DecimalFormat df = new DecimalFormat("#.00");
         double refresh = 1000.0 / fps;
-        String ret = refresh + "," + turn + "," + n;
-        for (int i = 0; i < n; ++i)
+        String ret = refresh + "," + turn + "," + p;// + transactions.size();
+        if (transactions == null) ret += ",0";
+        else ret += "," + transactions.size();
+        for (int i = 0; i < p; ++i) {
             ret += "," + playerNames.get(i);
-        for (int i = 0; i < n; ++i) {
-            ret += "," + handles[i].size();
-            for (Integer j : handles[i])
-                ret += "," + j;
+            ret += "," + df.format(players[i].getTotalEmbarrassment());
+            if (offers[i].getFirst() == null)
+                ret += ",no";
+            else ret += "," + offers[i].getFirst().toRGB();
+            if (offers[i].getSecond() == null)
+                ret += ",no";
+            else ret += "," + offers[i].getSecond().toRGB();
+            if (requests == null)
+                ret += ",-1,-1,-1,-1";
+            else {
+                Request r = requests[i];
+                ret += "," + r.getFirstOrderID() + "," + r.getFirstOrderRank() + "," + r.getSecondOrderID() + "," + r.getSecondOrderRank();
+            }
         }
+        if (transactions != null)
+            for (Transaction t : transactions)
+                ret += "," + t.getFirstID() + "," + t.getFirstRank() + "," + t.getSecondID() + "," + t.getSecondRank();
         return ret;
     }
 
@@ -207,21 +231,16 @@ public class Simulator {
                             ++i;
                             playerNames.add(args[i]);
                         }
-                    } else if (args[i].equals("-t")) {
+                    } else if (args[i].equals("-t") || args[i].equals("--turns")) {
                         if (++i == args.length) {
-                            throw new IllegalArgumentException("Missing time limit");
+                            throw new IllegalArgumentException("Missing turn limit");
                         }
                         t = Integer.parseInt(args[i]);
                     } else if (args[i].equals("-n")) {
                         if (++i == args.length) {
-                            throw new IllegalArgumentException("Missing time limit");
+                            throw new IllegalArgumentException("Missing number of pairs");
                         }
                         n = Integer.parseInt(args[i]);
-                    } else if (args[i].equals("-g") || args[i].equals("--gui")) {
-                        if (++i == args.length) {
-                            throw new IllegalArgumentException("Missing time limit");
-                        }
-                        playerTimeout = Integer.parseInt(args[i]);
                     } else if (args[i].equals("-tl") || args[i].equals("--timelimit")) {
                         if (++i == args.length) {
                             throw new IllegalArgumentException("Missing time limit");
@@ -232,9 +251,11 @@ public class Simulator {
                             throw new IllegalArgumentException("Missing logfile name");
                         }
                         Log.setLogFile(args[i]);
-                    } else if (args[i].equals("--fps")) {
+                    } else if (args[i].equals("-g") || args[i].equals("--gui")) {
+                        gui = true;
+                    }else if (args[i].equals("--fps")) {
                         if (++i == args.length) {
-                            throw new IllegalArgumentException("Missing time limit");
+                            throw new IllegalArgumentException("Missing fps");
                         }
                         fps = Double.parseDouble(args[i]);
                     } else if (args[i].equals("-v") || args[i].equals("--verbose")) {
@@ -277,7 +298,7 @@ public class Simulator {
         return files;
     }
 
-    public static Player loadPlayer(int id, String name) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    public static Player loadPlayer(int id, String name) throws IOException, ClassNotFoundException, InstantiationException, InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         String sep = File.separator;
         Set<File> player_files = directory(root + sep + name, ".java");
         File class_file = new File(root + sep + name + sep + "Player.class");
@@ -304,14 +325,8 @@ public class Simulator {
         @SuppressWarnings("rawtypes")
         Class<?> raw_class = loader.loadClass(root + "." + name + ".Player");
         Player player = null;
-        try {
-            Constructor<?> constructor = raw_class.getConstructor(Player.class);
-            player = (Player) constructor.newInstance(id, n, p);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
+        Constructor<?> constructor = raw_class.getConstructor(Integer.TYPE, Integer.TYPE, Integer.TYPE);
+        player = (Player) constructor.newInstance(id, n, p);
         return player;
     }
 

@@ -12,22 +12,20 @@ public class ExchangeCenter {
         events.clear();
         boolean[][] mark = new boolean[requests.length][];
         for (int i = 0; i < requests.length; ++i) {
-            mark[i] = new boolean[2];
-            if (requests[i].getFirstOrderID() != -1) {
-                if (offers[i].getFirst() != null)
-                    events.add(new Event(i, 1, requests[i].getFirstOrderID(), requests[i].getFirstOrderRank()));
-                if (offers[i].getFirst() != null)
-                    events.add(new Event(i, 1, requests[i].getFirstOrderID(), requests[i].getFirstOrderRank()));
-                if (offers[i].getSecond() != null)
-                    events.add(new Event(i, 2, requests[i].getFirstOrderID(), requests[i].getFirstOrderRank()));
+            mark[i] = new boolean[3];
+            int id1 = requests[i].getFirstOrderID(), id2 = requests[i].getSecondOrderID();
+            int rank1 = requests[i].getFirstOrderRank(), rank2 = requests[i].getSecondOrderRank();
+            if (id1 != -1) {
+                if (requests[id1].getFirstOrderID() == i)
+                    events.add(new Event(id1, rank1, i, requests[id1].getFirstOrderRank()));
+                if (requests[id1].getSecondOrderID() == i)
+                    events.add(new Event(id1, rank1, i, requests[id1].getSecondOrderRank()));
             }
-            if (requests[i].getSecondOrderID() != -1) {
-                if (offers[i].getFirst() != null)
-                    events.add(new Event(i, 1, requests[i].getSecondOrderID(), requests[i].getSecondOrderRank()));
-                if (offers[i].getFirst() != null)
-                    events.add(new Event(i, 1, requests[i].getFirstOrderID(), requests[i].getFirstOrderRank()));
-                if (offers[i].getSecond() != null)
-                    events.add(new Event(i, 2, requests[i].getSecondOrderID(), requests[i].getSecondOrderRank()));
+            if (id2 != -1) {
+                if (requests[id2].getFirstOrderID() == i)
+                    events.add(new Event(id2, rank2, i, requests[id2].getFirstOrderRank()));
+                if (requests[id2].getSecondOrderID() == i)
+                    events.add(new Event(id2, rank2, i, requests[id2].getSecondOrderRank()));
             }
         }
         events.sort((e1, e2) -> {
@@ -44,7 +42,7 @@ public class ExchangeCenter {
                 mark[e.id2][e.rank2] = true;
             }
         }
-        return null;
+        return transactions;
     }
 
     private static class Event {

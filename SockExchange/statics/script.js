@@ -1,42 +1,79 @@
-var radius = 18;
-var xgap = 120;
-var ygap = 50;
+var radius = 20;
 
-function drawPlayer(ctx, id, x, y) {
-	// drawing circle
+function drawCircle(ctx, x, y, color) {
 	ctx.beginPath();
-	ctx.arc(x, y, radius, 0, 2*Math.PI);
+	ctx.arc(x, y, radius, 0, 2 * Math.PI);
+	ctx.fillStyle = '#' + color;
+	ctx.fill();
 	ctx.stroke();
-	// console.log(id + " " + String(id).length);
-	// displaying id
-	if (String(id).length == 1)
-		ctx.fillText(id, x - 5, y + 7);
-	else if (String(id).length == 2)
-		ctx.fillText(id, x - 10, y + 7);
-	else
-		ctx.fillText(id, x - 15, y + 7);
+	ctx.fillStyle = 'black';
+}
+
+function drawArrow(ctx, fromx, fromy, tox, toy) {
+    var headlen = 10;   // length of head in pixels
+    var angle = Math.atan2(toy-fromy,tox-fromx);
+    ctx.beginPath();
+    ctx.moveTo(fromx, fromy);
+    ctx.lineTo(tox, toy);
+    ctx.lineTo(tox-headlen*Math.cos(angle-Math.PI/6),toy-headlen*Math.sin(angle-Math.PI/6));
+    ctx.moveTo(tox, toy);
+    ctx.lineTo(tox-headlen*Math.cos(angle+Math.PI/6),toy-headlen*Math.sin(angle+Math.PI/6));
+    ctx.stroke();
+}
+
+function drawBoldArrow(ctx, fromx, fromy, tox, toy) {
+    var headlen = 10;   // length of head in pixels
+    var angle = Math.atan2(toy-fromy,tox-fromx);
+    ctx.beginPath();
+    ctx.lineWidth=4;
+    ctx.moveTo(fromx, fromy);
+    ctx.lineTo(tox, toy);
+    ctx.lineTo(tox-headlen*Math.cos(angle-Math.PI/6),toy-headlen*Math.sin(angle-Math.PI/6));
+    ctx.moveTo(tox, toy);
+    ctx.lineTo(tox-headlen*Math.cos(angle+Math.PI/6),toy-headlen*Math.sin(angle+Math.PI/6));
+    ctx.strokeStyle='#FF0000';
+    ctx.stroke();
+    ctx.lineWidth=1;
+    ctx.strokeStyle='#000000';
 }
 
 function process(data) {
+	// data: refresh,turn,p,transactions,[name,score,RGB1,RGB2),request1(id,rank),request2(id,rank)],[transaction(id1,rank1,id2,rank2)]
 	var terms = data.split(",");
 	var refresh = Number(terms[0]);
 	var turn = Number(terms[1]);
-	var n = Number(terms[2]);
-	var handles = new Array(n);
-	var names = new Array(n);
-	var i, j = 3, k, len;
-	for (i = 0; i < n; ++ i) {
-		names[i] = terms[j];
-		++ j;
+	var p = Number(terms[2]);
+	var trans = Number(terms[3]);
+
+	var offers = new Array(p);
+	var names = new Array(p);
+	var scores = new Array(p);
+	var requests = new Array(p);
+	var transactions = new Array(trans);
+
+	var i, j = 4;
+	for (i = 0; i < p; ++ i) {
+		names[i] = terms[j]; ++ j;
+		scores[i] = terms[j]; ++ j;
+		offers[i] = new Array(2);
+		offers[i][0] = terms[j]; ++ j;
+		offers[i][1] = terms[j]; ++ j;
+		requests[i] = new Array(2);
+		requests[i][0] = {};
+		requests[i][0].id = Number(terms[j]); ++ j;
+		requests[i][0].rank = Number(terms[j]) - 1; ++ j;
+		requests[i][1] = {};
+		requests[i][1].id = Number(terms[j]); ++ j;
+		requests[i][1].rank = Number(terms[j]) - 1; ++ j;
 	}
-	for (i = 0; i < n; ++ i) {
-		len = Number(terms[j]);
-		++ j;
-		handles[i] = new Array(len);
-		for (k = 0; k < len; ++ k) {
-			handles[i][k] = Number(terms[j]);
-			++ j;
-		}
+	for (i = 0; i < p; ++ i) {
+		transactions[i] = new Array(2);
+		transactions[i][0] = {};
+		transactions[i][0].id = Number(terms[j]); ++ j;
+		transactions[i][0].rank = Number(terms[j]) - 1; ++ j;
+		transactions[i][1] = {};	
+		transactions[i][1].id = Number(terms[j]); ++ j;
+		transactions[i][1].rank = Number(terms[j]) - 1; ++ j;
 	}
 
 	var canvas = document.getElementById("canvas");
@@ -45,44 +82,75 @@ function process(data) {
 	document.getElementById("turn").innerHTML = "Turn: " + turn;
 	ctx.font = "20px Ariel"
 
-	var xoffset = -20;
-	var yoffset = 0;
-	var nx = 10;
-	var ny;
+	var r1 = 180, r2 = 280, r3 = 320, r4 = 620;
+	var c1 = 20;
 
-	for (k = 0; k < n; k += nx) {
-		var l = k, r = Math.min(n, k + nx);
+	var cgap = 100, ctop, cmid, cbot;
 
-		// Drawing titles
-		for (i = 0; i < r - l; ++ i) {
-			ctx.fillText("Handle " + (l + i), xoffset + xgap * (i + 1) - 40, yoffset + 25);
+	ctx.fillText("Embarrassment", 20, c1);
+	ctx.fillText("Player", r1 + 0, c1);
+	ctx.fillText("Offers", r2, c1);
+	ctx.fillText("Requests", r4 - 10, c1);
+
+
+
+
+	for (i = 0; i < p; ++ i) {
+		ctop = cgap * (i) + c1;
+		cbot = cgap * (i + 1) + c1;
+		cmid = (ctop + cbot) * 0.5;
+		//draw names and scores
+		ctx.fillText(scores[i], 50, cmid);
+		ctx.fillText(names[i], r1 + 10, cmid);
+		// draw offers
+		if (offers[i][0] != 'no')
+			drawCircle(ctx, (r2 + r3) * 0.5, (ctop + cmid) * 0.5 + 5, offers[i][0]);
+		if (offers[i][1] != 'no')
+			drawCircle(ctx, (r2 + r3) * 0.5, (cbot + cmid) * 0.5 - 5, offers[i][1]);
+
+		// draw requests
+		// console.log(requests[i]);
+		if (requests[i][0].id >= 0) {
+			drawCircle(ctx, r4 + 20, (ctop + cmid) * 0.5 + 5, offers[requests[i][0].id][requests[i][0].rank]);
+			var ry = requests[i][0].id * cgap + c1 + cgap * 0.25 + 5 * (1 - 2 * requests[i][0].rank) + requests[i][0].rank * cgap * 0.5;
+			drawArrow(ctx, r3 + 2, ry, r4 - 2, (ctop + cmid) * 0.5 + 5);
 		}
-		ny = 0;
-		for (i = 0; i < r - l; ++ i) {
-			ny = Math.max(ny, handles[l + i].length);
-			for (j = 0; j < handles[l + i].length; ++ j)
-				drawPlayer(ctx, handles[l + i][j], xoffset + xgap * (i + 1), yoffset + ygap * (j + 1));
+		if (requests[i][1].id >= 0) {
+			drawCircle(ctx, r4 + 20, (cbot + cmid) * 0.5 - 5, offers[requests[i][1].id][requests[i][1].rank]);
+			var ry = requests[i][1].id * cgap + c1 + cgap * 0.25 + 5 * (1 - 2 * requests[i][1].rank) + requests[i][1].rank * cgap * 0.5;
+			drawArrow(ctx, r3 + 2, ry, r4 - 2, (cbot + cmid) * 0.5 - 5);
 		}
-		yoffset += ygap * (ny + 1);
 	}
+
+	var id1, id2, rank1, rank2;
+	var fromx, fromy, tox, toy;
+	for (i = 0; i < trans; ++ i) {
+		id1 = transactions[i][0].id, rank1 = transactions[i][0].rank;
+		id2 = transactions[i][1].id, rank2 = transactions[i][1].rank;
+		// redraw offer
+		drawCircle(ctx, (r2 + r3) * 0.5, id1 * cgap + c1 + cgap * 0.25 + 5 * (1 - 2 * rank1) + rank1 * cgap * 0.5, offers[id2][rank2]);
+		drawCircle(ctx, (r2 + r3) * 0.5, id2 * cgap + c1 + cgap * 0.25 + 5 * (1 - 2 * rank2) + rank2 * cgap * 0.5, offers[id1][rank1]);
+		
+		// Draw id1 line
+		tox = r3 + 2; fromx = r4 - 2;
+		toy = id1 * cgap + c1 + cgap * 0.25 + 5 * (1 - 2 * rank1) + rank1 * cgap * 0.5;
+		if (id2 == requests[id1][0].id && rank2 == requests[id1][0].rank)
+			fromy = id1 * cgap + c1 + cgap * 0.25 + 5 * (1 - 2 * 0) + 0 * cgap * 0.5;
+		else
+			fromy = id1 * cgap + c1 + cgap * 0.25 + 5 * (1 - 2 * 1) + 1 * cgap * 0.5;
+		drawBoldArrow(ctx, fromx, fromy, tox, toy);
+
+		// Draw id2 line
+		toy = id2 * cgap + c1 + cgap * 0.25 + 5 * (1 - 2 * rank2) + rank2 * cgap * 0.5, offers[id2][rank2];
+		if (id1 == requests[id2][0].id && rank1 == requests[id2][0].rank)
+			fromy = id2 * cgap + c1 + cgap * 0.25 + 5 * (1 - 2 * 0) + 0 * cgap * 0.5;
+		else
+			fromy = id2 * cgap + c1 + cgap * 0.25 + 5 * (1 - 2 * 1) + 1 * cgap * 0.5;
+		drawBoldArrow(ctx, fromx, fromy, tox, toy);
+	}
+
+	
 	return refresh;
-
-	/*
-	var x, y;
-
-	for (x = 0; x < nx; ++ x) {
-		ctx.fillText("Handle " + x, xoffset + xgap * (x + 1) - 40, 25);
-	}
-
-	for (y = 0; y < ny; ++ y)
-		for (x = 0; x < nx; ++ x) {
-			drawPlayer(ctx, y * nx + x, xoffset + xgap * (x + 1), yoffset + ygap * (y + 1));
-		}
-
-	for (x = 0; x < nx; ++ x) {
-		ctx.fillText("Handle " + x, xoffset + xgap * (x + 1) - 40, yoffset + ygap * (ny +  1) + 25);
-	}*/
-
 }
 
 var latest_version = -1;
@@ -128,7 +196,7 @@ function ajax(version, retries, timeout) {
 }
 
 ajax(1, 10, 100)
-
+// var data="100,1,2,1,g0,100.0,FF0000,00FFFF,1,1,-1,-1,g1,200.21,0000FF,no,0,1,0,2,0,2,1,1"
 //var data = "12,1,0,2,1,11,0,3,2,3,4,0,0,0,0,0,4,9,10,8,7,1,5,1,6,0";
 
-//process(data);
+// process(data);

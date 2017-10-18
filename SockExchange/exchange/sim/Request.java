@@ -26,4 +26,9 @@ public class Request {
     public int getSecondOrderRank() {
         return secondOrderRank;
     }
+
+    @Override
+    public String toString() {
+        return "(" + firstOrderID + ", " + firstOrderRank + "), (" + secondOrderID + ", " + secondOrderRank + ")";
+    }
 }

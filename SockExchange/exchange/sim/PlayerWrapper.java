@@ -55,4 +55,8 @@ public class PlayerWrapper {
     public long getTotalElapsedTime() {
         return originalTimeout - timeout;
     }
+
+    public double getTotalEmbarrassment() {
+        return player.getTotalEmbarrassment();
+    }
 }
