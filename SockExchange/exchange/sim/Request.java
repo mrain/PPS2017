@@ -1,7 +1,5 @@
 package exchange.sim;
 
-import java.util.List;
-
 public class Request {
     private int firstOrderID, firstOrderRank;
     private int secondOrderID, secondOrderRank;

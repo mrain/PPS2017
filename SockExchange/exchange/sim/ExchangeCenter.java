@@ -1,41 +1,33 @@
 package exchange.sim;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
 public class ExchangeCenter {
     private static Random random = new Random();
-
-    private static class Event {
-        public int id1, id2;
-        public int rank1, rank2;
-        public int priority;
-
-        public Event(int id1, int rank1, int id2, int rank2) {
-            this.id1 = id1;
-            this.id2 = id2;
-            this.rank1 = rank1;
-            this.rank2 = rank2;
-            this.priority = random.nextInt();
-        }
-    }
-
     private static List<Event> events = new ArrayList<>();
 
     public static List<Transaction> exchange(Offer[] offers, Request[] requests) {
         events.clear();
         boolean[][] mark = new boolean[requests.length][];
-        for (int i = 0; i < requests.length; ++ i) {
+        for (int i = 0; i < requests.length; ++i) {
             mark[i] = new boolean[2];
             if (requests[i].getFirstOrderID() != -1) {
-                if (offers[i].getFirst() != null) events.add(new Event(i, 1, requests[i].getFirstOrderID(), requests[i].getFirstOrderRank()));                if (offers[i].getFirst() != null) events.add(new Event(i, 1, requests[i].getFirstOrderID(), requests[i].getFirstOrderRank()));
-                if (offers[i].getSecond() != null) events.add(new Event(i, 2, requests[i].getFirstOrderID(), requests[i].getFirstOrderRank()));
+                if (offers[i].getFirst() != null)
+                    events.add(new Event(i, 1, requests[i].getFirstOrderID(), requests[i].getFirstOrderRank()));
+                if (offers[i].getFirst() != null)
+                    events.add(new Event(i, 1, requests[i].getFirstOrderID(), requests[i].getFirstOrderRank()));
+                if (offers[i].getSecond() != null)
+                    events.add(new Event(i, 2, requests[i].getFirstOrderID(), requests[i].getFirstOrderRank()));
             }
             if (requests[i].getSecondOrderID() != -1) {
-                if (offers[i].getFirst() != null) events.add(new Event(i, 1, requests[i].getSecondOrderID(), requests[i].getSecondOrderRank()));                if (offers[i].getFirst() != null) events.add(new Event(i, 1, requests[i].getFirstOrderID(), requests[i].getFirstOrderRank()));
-                if (offers[i].getSecond() != null) events.add(new Event(i, 2, requests[i].getSecondOrderID(), requests[i].getSecondOrderRank()));
+                if (offers[i].getFirst() != null)
+                    events.add(new Event(i, 1, requests[i].getSecondOrderID(), requests[i].getSecondOrderRank()));
+                if (offers[i].getFirst() != null)
+                    events.add(new Event(i, 1, requests[i].getFirstOrderID(), requests[i].getFirstOrderRank()));
+                if (offers[i].getSecond() != null)
+                    events.add(new Event(i, 2, requests[i].getSecondOrderID(), requests[i].getSecondOrderRank()));
             }
         }
         events.sort((e1, e2) -> {
@@ -53,5 +45,19 @@ public class ExchangeCenter {
             }
         }
         return null;
+    }
+
+    private static class Event {
+        public int id1, id2;
+        public int rank1, rank2;
+        public int priority;
+
+        public Event(int id1, int rank1, int id2, int rank2) {
+            this.id1 = id1;
+            this.id2 = id2;
+            this.rank1 = rank1;
+            this.rank2 = rank2;
+            this.priority = random.nextInt();
+        }
     }
 }

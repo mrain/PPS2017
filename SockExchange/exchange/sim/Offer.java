@@ -22,6 +22,7 @@ public class Offer {
     public Sock getFirst() {
         return this.first;
     }
+
     public Sock getSecond() {
         return this.second;
     }

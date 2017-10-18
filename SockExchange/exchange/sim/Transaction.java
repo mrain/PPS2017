@@ -5,6 +5,15 @@ public class Transaction {
     private int secondID, secondRank;
     private Sock firstSock, secondSock;
 
+    public Transaction(int firstID, int firstRank, int secondID, int secondRank, Sock firstSock, Sock secondSock) {
+        this.firstID = firstID;
+        this.firstRank = firstRank;
+        this.secondID = secondID;
+        this.secondRank = secondRank;
+        this.firstSock = new Sock(firstSock);
+        this.secondSock = new Sock(secondSock);
+    }
+
     public int getFirstID() {
         return firstID;
     }
@@ -27,14 +36,5 @@ public class Transaction {
 
     public Sock getSecondSock() {
         return new Sock(secondSock);
-    }
-
-    public Transaction(int firstID, int firstRank, int secondID, int secondRank, Sock firstSock, Sock secondSock) {
-        this.firstID = firstID;
-        this.firstRank = firstRank;
-        this.secondID = secondID;
-        this.secondRank = secondRank;
-        this.firstSock = new Sock(firstSock);
-        this.secondSock = new Sock(secondSock);
     }
 }

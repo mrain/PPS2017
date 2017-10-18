@@ -1,10 +1,19 @@
 package exchange.sim;
 
-import java.io.*;
-import java.net.*;
-import java.time.*;
-import java.time.format.*;
-import java.nio.channels.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownServiceException;
+import java.nio.channels.ConnectionPendingException;
+import java.nio.channels.NoConnectionPendingException;
+import java.nio.channels.NotYetBoundException;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 class HTTPServer {
 
@@ -26,7 +35,7 @@ class HTTPServer {
     }
 
     public String addr() {
-    	return socket == null ? "NA" : socket.getLocalSocketAddress().toString();
+        return socket == null ? "NA" : socket.getLocalSocketAddress().toString();
     }
 
     public void close() throws IOException {
