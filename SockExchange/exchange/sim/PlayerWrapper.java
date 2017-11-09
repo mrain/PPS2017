@@ -213,8 +213,9 @@ public class PlayerWrapper {
         if (!thread.isAlive()) thread.start();
         thread.call_start(() -> player.getSocks());
         List<Sock> list;
+        if (timedOut) timeout = 0;
         try {
-            list = thread.call_wait(10000);
+            list = thread.call_wait(timeout + 10000);
         } catch (Exception e) {
             throw e;
         }
